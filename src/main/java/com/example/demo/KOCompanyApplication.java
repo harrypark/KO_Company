@@ -55,7 +55,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 		
 		if(csvfile.contains("국내")) {
 			log.debug("======> 국내기업 크롤링 및 번역 시작.");
-			domestic(filename,50);
+			domestic(filename,1);
 		}else if(csvfile.contains("해외")){
 			log.debug("======> 해외기업 크롤링 및 번역 시작.");
 			international(filename, 1);
@@ -118,8 +118,9 @@ public class KOCompanyApplication implements CommandLineRunner{
 	            
 	        	com.setLineNum(lineNum);
 	        	//log.debug("get=====>"+mapper.get().toString());
+	        	log.debug(com.toString());
 	        	mapper.addInternationalCompany(com);
-	            log.debug(com.toString());
+	            
 	    	}
 	    }
 	}
@@ -141,7 +142,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 	    	//log.debug("============================>"+lineNum);
 	    	Company com = (Company) it.next();
 	    	//국가 올션조절
-	    	if(lineNum >= startLine && lineNum <= 51) {
+	    	if(lineNum >= startLine && lineNum <= 1000) {
 	    	//if(lineNum >= startLine ) {
 	        	String bodyText = jsoupBody(com.getChUrl());
 	        	if(bodyText != null) {
@@ -160,8 +161,9 @@ public class KOCompanyApplication implements CommandLineRunner{
 	            
 	        	com.setLineNum(lineNum);
 	        	//log.debug("get=====>"+mapper.get().toString());
+	        	log.debug(com.toString());
 	        	mapper.addDomesticCompany(com);
-	            log.debug(com.toString());
+	            
 	    	}
 	    }
 		
@@ -230,10 +232,10 @@ public class KOCompanyApplication implements CommandLineRunner{
         try {
 			//String html2 = Jsoup.connect(webPage).get().html();
         	//get input stream from the URL
-            InputStream inStream = new URL(webPage).openStream();
-            Document document = Jsoup.parse(inStream, "UTF-8", webPage);
+//            InputStream inStream = new URL(webPage).openStream();
+//            Document document = Jsoup.parse(inStream, "UTF-8", webPage);
         	
-			//Document document = Jsoup.connect(webPage).get();
+			Document document = Jsoup.connect(webPage).get();
 			//System.out.printf("Html: %s%n", html2);
 			bodyText = document.select("body").text();
 			
