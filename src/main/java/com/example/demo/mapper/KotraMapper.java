@@ -26,10 +26,10 @@ public interface KotraMapper {
 	@Select("select * from out_sample limit 1")
 	OutSample get();
 
-	@Insert("INSERT INTO kotra_2.ko_International (line_num, id, name, country_cd, url, ch_url, org_text, org_lang_cd, trans_text, byte_length, reg_dt, mod_dt) VALUES(#{lineNum}, #{id}, #{name}, #{countryCd}, #{url}, #{chUrl}, #{orgText}, #{orgLangCd}, #{transText}, #{byteLength}, now(), now())")
+	@Insert("INSERT INTO kotra_2.ko_International (line_num, id, name, country_cd, url, ch_url, org_text, org_lang_cd, trans_text, org_desc, trans_desc, org_keywords, trans_keywords, byte_length, reg_dt, mod_dt) VALUES(#{lineNum}, #{id}, #{name}, #{countryCd}, #{url}, #{chUrl}, #{orgText}, #{orgLangCd}, #{transText}, #{orgDesc}, #{transDesc}, #{orgKeywords}, #{transKeywords}, #{byteLength}, now(), now())")
 	void addInternationalCompany(Company com);
 
-	@Insert("INSERT INTO kotra_2.ko_Domestic (line_num, id, name, url, ch_url, org_text, org_lang_cd, trans_text, byte_length, reg_dt, mod_dt) VALUES(#{lineNum}, #{id}, #{name},  #{url}, #{chUrl}, #{orgText}, #{orgLangCd}, #{transText}, #{byteLength}, now(), now())")
+	@Insert("INSERT INTO kotra_2.ko_Domestic (line_num, id, name,  url, ch_url, org_text, org_lang_cd, trans_text, org_desc, trans_desc, org_keywords, trans_keywords, byte_length, reg_dt, mod_dt) VALUES(#{lineNum}, #{id}, #{name},  #{url}, #{chUrl}, #{orgText}, #{orgLangCd}, #{transText}, #{orgDesc}, #{transDesc}, #{orgKeywords}, #{transKeywords}, #{byteLength}, now(), now())")
 	void addDomesticCompany(Company com);
 	
 	

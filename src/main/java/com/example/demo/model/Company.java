@@ -18,6 +18,12 @@ public class Company {
 	
 	private String transText; //번역
 	
+	private String orgDesc;
+	private String transDesc;
+	
+	private String orgKeywords;
+	private String transKeywords;
+	
 	private int byteLength;// 원본 byte사이즈
 	
 	private Date regDt;

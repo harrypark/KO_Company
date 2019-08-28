@@ -7,10 +7,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 
-
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.example.demo.mapper.KotraMapper;
 import com.example.demo.model.Company;
+import com.example.demo.model.Crawling;
 import com.example.demo.model.TransResult;
 import com.example.demo.util.Translator;
 import com.opencsv.CSVReader;
@@ -41,14 +44,16 @@ public class KOCompanyApplication implements CommandLineRunner{
 	public void setKotraMapper() {
 		this.mapper = this.kotraMapper;
 	}
+	
+	static Pattern em = Pattern.compile("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+");
 
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(KOCompanyApplication.class, args);
 		long beforeTime = System.currentTimeMillis(); //코드 실행 전에 시간 받아오기
 
 		//static String cvsfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\inter_co_sample4.csv";
-//		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\해외기업.csv";
-		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\국내기업.csv";
+		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\해외기업.csv";
+//		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\국내기업.csv";
 		File filename = new File(csvfile);
 
 		if(csvfile.contains("국내")) {
@@ -97,28 +102,42 @@ public class KOCompanyApplication implements CommandLineRunner{
 	    	//log.debug("============================>"+lineNum);
 	    	Company com = (Company) it.next();
 	    	//국가 올션조절
-	    	if(lineNum >= 1 && lineNum <= 2) {
+	    	if(lineNum >= startLine && lineNum <= 10) {
 	    	//if(lineNum >= startLine ) {
-	        	String bodyText = jsoupBody(com.getChUrl());
-	        	if(bodyText != null) {
-	        		com.setOrgText(bodyText);
-	        		//log.debug("bodyText:"+bodyText);
-	        		//번역
-
-	        		TransResult tr = Translator.subStrByteAndTranslate(bodyText, cutlen);
-	        		//log.debug(tr.toString());
-	        		if(tr != null) {
-	        			com.setTransText(tr.getTransText());
-	        			com.setOrgLangCd(tr.getLangCd());
-	        			com.setByteLength(tr.getByteLength());
+	    		Crawling cr= jsoupBody(com.getChUrl());
+	        	if(cr!= null) {
+	        		if(StringUtils.isNotEmpty(cr.getDescription())) {
+	        			com.setOrgDesc(cr.getDescription());
+	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getDescription(), cutlen);
+	        			if(tr != null) {
+		        			com.setTransDesc(tr.getTransText());
+		        		}
+	        			
 	        		}
-	        	}
+	        	
+		        	if(StringUtils.isNotEmpty(cr.getKeywords())) {
+	        			com.setOrgKeywords(cr.getKeywords());
+	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getKeywords(), cutlen);
+	        			if(tr != null) {
+		        			com.setTransKeywords(tr.getTransText());
+		        		}
+	        		}
+		    	
+			    	if(StringUtils.isNotEmpty(cr.getBodyText())){
+			    		com.setOrgText(cr.getBodyText());
+			    		TransResult tr = Translator.subStrByteAndTranslate(cr.getBodyText(), cutlen);
+			    		if(tr != null) {
+		        			com.setTransText(tr.getTransText());
+		        			com.setOrgLangCd(tr.getLangCd());
+		        			com.setByteLength(tr.getByteLength());
+		        		}
+		    		}
+	    		}
 
 	        	com.setLineNum(lineNum);
 	        	//log.debug("get=====>"+mapper.get().toString());
 	        	log.debug(com.toString());
 	        	mapper.addInternationalCompany(com);
-
 	    	}
 	    }
 	}
@@ -129,7 +148,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 	 */
 	private static void domestic(File fileName, int startLine) {
 		log.debug("============> 국내기업 시작라인 : "+ startLine);
-		int cutlen = 5500;
+		int cutlen = 5000;
 		int lineNum = 0;
 
 	    List<Company> data = CSVReadDomestic(fileName);
@@ -140,30 +159,48 @@ public class KOCompanyApplication implements CommandLineRunner{
 	    	//log.debug("============================>"+lineNum);
 	    	Company com = (Company) it.next();
 	    	//국가 올션조절
-	    	if(lineNum >= startLine && lineNum <= 1000) {
+	    	if(lineNum >= startLine && lineNum <= 10) {
 	    	//if(lineNum >= startLine ) {
-	        	String bodyText = jsoupBody(com.getChUrl());
-	        	if(bodyText != null) {
-	        		com.setOrgText(bodyText);
-	        		//log.debug("bodyText:"+bodyText);
-	        		//번역
-
-	        		TransResult tr = Translator.subStrByteAndTranslate(bodyText, cutlen);
-	        		//log.debug(tr.toString());
-	        		if(tr != null) {
-	        			com.setTransText(tr.getTransText());
-	        			com.setOrgLangCd(tr.getLangCd());
-	        			com.setByteLength(tr.getByteLength());
+	    		Crawling cr= jsoupBody(com.getChUrl());
+	        	if(cr!= null) {
+	        		if(StringUtils.isNotEmpty(cr.getDescription())) {
+	        			com.setOrgDesc(cr.getDescription());
+	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getDescription(), cutlen);
+	        			if(tr != null) {
+		        			com.setTransDesc(tr.getTransText());
+		        		}
+	        			
 	        		}
-	        	}
+	        	
+		        	if(StringUtils.isNotEmpty(cr.getKeywords())) {
+	        			com.setOrgKeywords(cr.getKeywords());
+	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getKeywords(), cutlen);
+	        			if(tr != null) {
+		        			com.setTransKeywords(tr.getTransText());
+		        		}
+	        		}
+		    	
+			    	if(StringUtils.isNotEmpty(cr.getBodyText())){
+			    		com.setOrgText(cr.getBodyText());
+			    		TransResult tr = Translator.subStrByteAndTranslate(cr.getBodyText(), cutlen);
+			    		if(tr != null) {
+		        			com.setTransText(tr.getTransText());
+		        			com.setOrgLangCd(tr.getLangCd());
+		        			com.setByteLength(tr.getByteLength());
+		        		}
+		    		}
+	    		}
+	        		
+	        	
 
 	        	com.setLineNum(lineNum);
 	        	//log.debug("get=====>"+mapper.get().toString());
 	        	log.debug(com.toString());
 	        	mapper.addDomesticCompany(com);
-
 	    	}
+
 	    }
+	    
 
 	}
 
@@ -221,12 +258,15 @@ public class KOCompanyApplication implements CommandLineRunner{
 	 * @param webPage
 	 * @return
 	 */
-	private static String jsoupBody(String webPage) {
+	@SuppressWarnings("finally")
+	private static Crawling jsoupBody(String webPage) {
 
 		//String webPage = "http://www.aspic.co.kr";//en
 
         //webPage = "http://www.hdlift.co.kr";
 		String bodyText = null;
+		String description = null;
+		String keywords = null;
         try {
 			//String html2 = Jsoup.connect(webPage).get().html();
         	//get input stream from the URL
@@ -234,8 +274,31 @@ public class KOCompanyApplication implements CommandLineRunner{
 //            Document document = Jsoup.parse(inStream, "UTF-8", webPage);
 
 			Document document = Jsoup.connect(webPage).get();
+			
+			//meta tag 
+			String desc1=document.select("meta[name=description]").attr("content");
+			String desc2=document.select("meta[property=og:description]").attr("content");
+			String desc3=document.select("meta[name=twitter:description]").attr("content");
+			if(StringUtils.isNotEmpty(desc1)) {
+				description = emChange(desc1.replaceAll("(\r|\n|\r\n|\n\r)",""));
+			}else if(StringUtils.isNotEmpty(desc2)) {
+				description = emChange(desc2.replaceAll("(\r|\n|\r\n|\n\r)",""));
+			}else if(StringUtils.isNotEmpty(desc3)) {
+				description = emChange(desc3.replaceAll("(\r|\n|\r\n|\n\r)",""));
+			}
+			
+			String key =  document.select("meta[name=keywords]").attr("content");
+			if(StringUtils.isNotEmpty(key)) {
+				keywords = emChange(key.replaceAll("(\r|\n|\r\n|\n\r)",""));
+			}
+			//System.out.println("Meta Description: " + description);
 			//System.out.printf("Html: %s%n", html2);
 			bodyText = document.select("body").text();
+			//이모티콘제거
+			bodyText = emChange(bodyText);
+			log.debug(bodyText);
+			
+			
 
 			//log.debug("Language:"+detectLanguage(bodyText));
 			//System.out.printf("Body: %s", bodyText);
@@ -243,9 +306,21 @@ public class KOCompanyApplication implements CommandLineRunner{
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			return new Crawling(description, keywords, bodyText);
 		}
 
-        return bodyText;
+        
+	}
+	
+	/** 이모티콘제거
+	 * @param str
+	 * @return
+	 */
+	private static String emChange(String str) {
+		Matcher emMatcher = em.matcher(str);
+		str = emMatcher.replaceAll("");
+		return str;
 	}
 
 
