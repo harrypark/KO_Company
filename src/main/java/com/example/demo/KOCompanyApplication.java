@@ -44,7 +44,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 	public void setKotraMapper() {
 		this.mapper = this.kotraMapper;
 	}
-	
+
 	static Pattern em = Pattern.compile("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+");
 
 	public static void main(String[] args) throws Exception {
@@ -102,7 +102,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 	    	//log.debug("============================>"+lineNum);
 	    	Company com = (Company) it.next();
 	    	//국가 올션조절
-	    	if(lineNum >= startLine && lineNum <= 10) {
+	    	if(lineNum >= startLine && lineNum <= 1000) {
 	    	//if(lineNum >= startLine ) {
 	    		Crawling cr= jsoupBody(com.getChUrl());
 	        	if(cr!= null) {
@@ -112,9 +112,9 @@ public class KOCompanyApplication implements CommandLineRunner{
 	        			if(tr != null) {
 		        			com.setTransDesc(tr.getTransText());
 		        		}
-	        			
+
 	        		}
-	        	
+
 		        	if(StringUtils.isNotEmpty(cr.getKeywords())) {
 	        			com.setOrgKeywords(cr.getKeywords());
 	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getKeywords(), cutlen);
@@ -122,7 +122,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 		        			com.setTransKeywords(tr.getTransText());
 		        		}
 	        		}
-		    	
+
 			    	if(StringUtils.isNotEmpty(cr.getBodyText())){
 			    		com.setOrgText(cr.getBodyText());
 			    		TransResult tr = Translator.subStrByteAndTranslate(cr.getBodyText(), cutlen);
@@ -169,9 +169,9 @@ public class KOCompanyApplication implements CommandLineRunner{
 	        			if(tr != null) {
 		        			com.setTransDesc(tr.getTransText());
 		        		}
-	        			
+
 	        		}
-	        	
+
 		        	if(StringUtils.isNotEmpty(cr.getKeywords())) {
 	        			com.setOrgKeywords(cr.getKeywords());
 	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getKeywords(), cutlen);
@@ -179,7 +179,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 		        			com.setTransKeywords(tr.getTransText());
 		        		}
 	        		}
-		    	
+
 			    	if(StringUtils.isNotEmpty(cr.getBodyText())){
 			    		com.setOrgText(cr.getBodyText());
 			    		TransResult tr = Translator.subStrByteAndTranslate(cr.getBodyText(), cutlen);
@@ -190,8 +190,8 @@ public class KOCompanyApplication implements CommandLineRunner{
 		        		}
 		    		}
 	    		}
-	        		
-	        	
+
+
 
 	        	com.setLineNum(lineNum);
 	        	//log.debug("get=====>"+mapper.get().toString());
@@ -200,7 +200,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 	    	}
 
 	    }
-	    
+
 
 	}
 
@@ -274,8 +274,8 @@ public class KOCompanyApplication implements CommandLineRunner{
 //            Document document = Jsoup.parse(inStream, "UTF-8", webPage);
 
 			Document document = Jsoup.connect(webPage).get();
-			
-			//meta tag 
+
+			//meta tag
 			String desc1=document.select("meta[name=description]").attr("content");
 			String desc2=document.select("meta[property=og:description]").attr("content");
 			String desc3=document.select("meta[name=twitter:description]").attr("content");
@@ -286,7 +286,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 			}else if(StringUtils.isNotEmpty(desc3)) {
 				description = emChange(desc3.replaceAll("(\r|\n|\r\n|\n\r)",""));
 			}
-			
+
 			String key =  document.select("meta[name=keywords]").attr("content");
 			if(StringUtils.isNotEmpty(key)) {
 				keywords = emChange(key.replaceAll("(\r|\n|\r\n|\n\r)",""));
@@ -296,9 +296,9 @@ public class KOCompanyApplication implements CommandLineRunner{
 			bodyText = document.select("body").text();
 			//이모티콘제거
 			bodyText = emChange(bodyText);
-			log.debug(bodyText);
-			
-			
+			//log.debug(bodyText);
+
+
 
 			//log.debug("Language:"+detectLanguage(bodyText));
 			//System.out.printf("Body: %s", bodyText);
@@ -310,9 +310,9 @@ public class KOCompanyApplication implements CommandLineRunner{
 			return new Crawling(description, keywords, bodyText);
 		}
 
-        
+
 	}
-	
+
 	/** 이모티콘제거
 	 * @param str
 	 * @return
