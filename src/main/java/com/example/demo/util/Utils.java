@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import net.dongliu.requests.Parameter;
 

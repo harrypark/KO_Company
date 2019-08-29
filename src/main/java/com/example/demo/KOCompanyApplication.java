@@ -52,16 +52,29 @@ public class KOCompanyApplication implements CommandLineRunner{
 		long beforeTime = System.currentTimeMillis(); //코드 실행 전에 시간 받아오기
 
 		//static String cvsfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\inter_co_sample4.csv";
-		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\해외기업.csv";
-//		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\국내기업.csv";
+//		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\해외기업.csv";
+		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\국내기업.csv";
 		File filename = new File(csvfile);
 
 		if(csvfile.contains("국내")) {
 			log.debug("======> 국내기업 크롤링 및 번역 시작.");
-			domestic(filename,1);
+			int duplicated_line_num_count = mapper.getDomesticDuplicatedineNumCount();
+			if(duplicated_line_num_count > 0) {
+				log.debug("======>###### 국내기업 중복되는 라인번호가 존재 합니다. DB를 확인 하세요.");
+			}else {
+				int max_line_num = mapper.getDomesticMaxLineNum();
+				domestic(filename,max_line_num+1);
+			}
+			
 		}else if(csvfile.contains("해외")){
 			log.debug("======> 해외기업 크롤링 및 번역 시작.");
-			international(filename, 1);
+			int duplicated_line_num_count = mapper.getInternationalDuplicatedineNumCount();
+			if(duplicated_line_num_count > 0) {
+				log.debug("======>###### 해외기업 중복되는 라인번호가 존재 합니다. DB를 확인 하세요.");
+			}else {
+				int max_line_num = mapper.getInternationalMaxLineNum();
+				international(filename,max_line_num+1);
+			}
 		}else {
 			log.debug("======> csv 파일명을 확인하세요.");
 		}
@@ -91,7 +104,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 	 */
 	private static void international(File fileName, int startLine) {
 		log.debug("============> 해외기업 시작라인 : "+ startLine);
-		int cutlen = 5500;
+		int cutlen = 5000;
 		int lineNum = 0;
 
 	    List<Company> data = CSVReadInternational(fileName);
@@ -136,7 +149,8 @@ public class KOCompanyApplication implements CommandLineRunner{
 
 	        	com.setLineNum(lineNum);
 	        	//log.debug("get=====>"+mapper.get().toString());
-	        	log.debug(com.toString());
+	        	//log.debug(com.toString());
+	        	log.debug("l_n: {} , byte : {} ,url: {}",com.getLineNum(),com.getByteLength(),com.getChUrl() );
 	        	mapper.addInternationalCompany(com);
 	    	}
 	    }
@@ -150,6 +164,10 @@ public class KOCompanyApplication implements CommandLineRunner{
 		log.debug("============> 국내기업 시작라인 : "+ startLine);
 		int cutlen = 5000;
 		int lineNum = 0;
+		
+		TransResult tr1 = new TransResult();
+		TransResult tr2 = new TransResult();
+		TransResult tr3 = new TransResult();
 
 	    List<Company> data = CSVReadDomestic(fileName);
 	    log.debug("============> 국내기업 전체 건수:"+data.size());
@@ -159,34 +177,35 @@ public class KOCompanyApplication implements CommandLineRunner{
 	    	//log.debug("============================>"+lineNum);
 	    	Company com = (Company) it.next();
 	    	//국가 올션조절
-	    	if(lineNum >= startLine && lineNum <= 10) {
+//	    	if(lineNum >= startLine && lineNum <= 7260) {
+	    	if(lineNum >= startLine ) {
 	    	//if(lineNum >= startLine ) {
 	    		Crawling cr= jsoupBody(com.getChUrl());
 	        	if(cr!= null) {
 	        		if(StringUtils.isNotEmpty(cr.getDescription())) {
 	        			com.setOrgDesc(cr.getDescription());
-	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getDescription(), cutlen);
-	        			if(tr != null) {
-		        			com.setTransDesc(tr.getTransText());
+	        			tr1 = Translator.subStrByteAndTranslate(cr.getDescription(), cutlen);
+	        			if(tr1 != null) {
+		        			com.setTransDesc(tr1.getTransText());
 		        		}
 
 	        		}
 
 		        	if(StringUtils.isNotEmpty(cr.getKeywords())) {
 	        			com.setOrgKeywords(cr.getKeywords());
-	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getKeywords(), cutlen);
-	        			if(tr != null) {
-		        			com.setTransKeywords(tr.getTransText());
+	        			tr2 = Translator.subStrByteAndTranslate(cr.getKeywords(), cutlen);
+	        			if(tr2 != null) {
+		        			com.setTransKeywords(tr2.getTransText());
 		        		}
 	        		}
 
 			    	if(StringUtils.isNotEmpty(cr.getBodyText())){
 			    		com.setOrgText(cr.getBodyText());
-			    		TransResult tr = Translator.subStrByteAndTranslate(cr.getBodyText(), cutlen);
-			    		if(tr != null) {
-		        			com.setTransText(tr.getTransText());
-		        			com.setOrgLangCd(tr.getLangCd());
-		        			com.setByteLength(tr.getByteLength());
+			    		tr3 = Translator.subStrByteAndTranslate(cr.getBodyText(), cutlen);
+			    		if(tr3 != null) {
+		        			com.setTransText(tr3.getTransText());
+		        			com.setOrgLangCd(tr3.getLangCd());
+		        			com.setByteLength(tr3.getByteLength());
 		        		}
 		    		}
 	    		}
@@ -195,7 +214,8 @@ public class KOCompanyApplication implements CommandLineRunner{
 
 	        	com.setLineNum(lineNum);
 	        	//log.debug("get=====>"+mapper.get().toString());
-	        	log.debug(com.toString());
+	        	//log.debug(com.toString());
+	        	log.debug("l_n: {} , byte : {} ,url: {}",com.getLineNum(),com.getByteLength(),com.getChUrl() );
 	        	mapper.addDomesticCompany(com);
 	    	}
 
@@ -273,7 +293,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 //            InputStream inStream = new URL(webPage).openStream();
 //            Document document = Jsoup.parse(inStream, "UTF-8", webPage);
 
-			Document document = Jsoup.connect(webPage).get();
+			Document document = Jsoup.connect(webPage).timeout(10*1000).get();
 
 			//meta tag
 			String desc1=document.select("meta[name=description]").attr("content");
@@ -286,12 +306,12 @@ public class KOCompanyApplication implements CommandLineRunner{
 			}else if(StringUtils.isNotEmpty(desc3)) {
 				description = emChange(desc3.replaceAll("(\r|\n|\r\n|\n\r)",""));
 			}
-
+			//log.debug("Meta Description: " + description);
 			String key =  document.select("meta[name=keywords]").attr("content");
 			if(StringUtils.isNotEmpty(key)) {
 				keywords = emChange(key.replaceAll("(\r|\n|\r\n|\n\r)",""));
 			}
-			//System.out.println("Meta Description: " + description);
+			//log.debug("keywords: " + keywords);
 			//System.out.printf("Html: %s%n", html2);
 			bodyText = document.select("body").text();
 			//이모티콘제거

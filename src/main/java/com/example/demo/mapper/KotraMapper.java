@@ -31,6 +31,18 @@ public interface KotraMapper {
 
 	@Insert("INSERT INTO kotra_2.ko_Domestic (line_num, id, name,  url, ch_url, org_text, org_lang_cd, trans_text, org_desc, trans_desc, org_keywords, trans_keywords, byte_length, reg_dt, mod_dt) VALUES(#{lineNum}, #{id}, #{name},  #{url}, #{chUrl}, #{orgText}, #{orgLangCd}, #{transText}, #{orgDesc}, #{transDesc}, #{orgKeywords}, #{transKeywords}, #{byteLength}, now(), now())")
 	void addDomesticCompany(Company com);
+
+	@Select("select max(line_num) from ko_Domestic")
+	int getDomesticMaxLineNum();
+
+	@Select("select count(*) from (select * from ko_Domestic group by line_num HAVING count(line_num)>1) a")
+	int getDomesticDuplicatedineNumCount();
+	
+	@Select("select max(line_num) from ko_International")
+	int getInternationalMaxLineNum();
+
+	@Select("select count(*) from (select * from ko_International group by line_num HAVING count(line_num)>1) a")
+	int getInternationalDuplicatedineNumCount();
 	
 	
 }
