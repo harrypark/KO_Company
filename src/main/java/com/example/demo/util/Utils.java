@@ -40,9 +40,18 @@ public class Utils {
 
 	public static List formatJson(String original) {
 		//System.out.println("original:  "+original);
-	    return new Gson().fromJson(original, List.class);
+		List list = null;
+
+		try {
+		list = new Gson().fromJson(original, List.class);
+		}catch (Exception e) {
+
+			list = null;
+			throw new IllegalStateException("Expected BEGIN_ARRAY but was STRING at line 1 column 1 path $");
+		}
+	    return list;
 	}
-	
+
 	public static void main(String [] args) {
 		buildParams("철","ko","en","token");
 	}

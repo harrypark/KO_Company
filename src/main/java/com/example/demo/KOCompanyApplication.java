@@ -52,8 +52,8 @@ public class KOCompanyApplication implements CommandLineRunner{
 		long beforeTime = System.currentTimeMillis(); //코드 실행 전에 시간 받아오기
 
 		//static String cvsfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\inter_co_sample4.csv";
-//		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\해외기업.csv";
-		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\국내기업.csv";
+		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\해외기업.csv";
+//		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\국내기업.csv";
 		File filename = new File(csvfile);
 
 		if(csvfile.contains("국내")) {
@@ -65,7 +65,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 				int max_line_num = mapper.getDomesticMaxLineNum();
 				domestic(filename,max_line_num+1);
 			}
-			
+
 		}else if(csvfile.contains("해외")){
 			log.debug("======> 해외기업 크롤링 및 번역 시작.");
 			int duplicated_line_num_count = mapper.getInternationalDuplicatedineNumCount();
@@ -115,8 +115,8 @@ public class KOCompanyApplication implements CommandLineRunner{
 	    	//log.debug("============================>"+lineNum);
 	    	Company com = (Company) it.next();
 	    	//국가 올션조절
-	    	if(lineNum >= startLine && lineNum <= 1000) {
-	    	//if(lineNum >= startLine ) {
+//	    	if(lineNum >= startLine && lineNum <= 1000) {
+	    	if(lineNum >= startLine ) {
 	    		Crawling cr= jsoupBody(com.getChUrl());
 	        	if(cr!= null) {
 	        		if(StringUtils.isNotEmpty(cr.getDescription())) {
@@ -164,7 +164,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 		log.debug("============> 국내기업 시작라인 : "+ startLine);
 		int cutlen = 5000;
 		int lineNum = 0;
-		
+
 		TransResult tr1 = new TransResult();
 		TransResult tr2 = new TransResult();
 		TransResult tr3 = new TransResult();
@@ -315,7 +315,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 			//System.out.printf("Html: %s%n", html2);
 			bodyText = document.select("body").text();
 			//이모티콘제거
-			bodyText = emChange(bodyText);
+			bodyText = emChange(bodyText.replaceAll("amp;", " "));
 			//log.debug(bodyText);
 
 
