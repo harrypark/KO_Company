@@ -36,7 +36,13 @@ public class TokenAcquirer {
 		int now = (int) Math.floor(System.currentTimeMillis() / 3600000.0);
 		if (tkk != null && Double.valueOf(tkk.split(",")[0]).intValue() == now)
 			return;
-		RawResponse r = session.get(host).send();
+
+		RawResponse r = null;
+		try {
+			r = session.get(host).send();
+		}catch (Exception e) {
+			System.out.println("TokenAcquirer.update Error");
+		}
 		String result = r.readToText();
 		Matcher m = RE_TKK.matcher(result);
 		if (m.find()) {

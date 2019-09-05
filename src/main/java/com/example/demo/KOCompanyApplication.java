@@ -28,6 +28,7 @@ import com.example.demo.util.Translator;
 import com.opencsv.CSVReader;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvToBean;
+import com.vdurmont.emoji.EmojiParser;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +48,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 
 	static Pattern em = Pattern.compile("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+");
 
+
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(KOCompanyApplication.class, args);
 		long beforeTime = System.currentTimeMillis(); //코드 실행 전에 시간 받아오기
@@ -55,36 +57,41 @@ public class KOCompanyApplication implements CommandLineRunner{
 		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\해외기업.csv";
 //		String csvfile ="D:\\작업폴더\\KOTRA\\크롤링자료\\url\\국내기업.csv";
 		File filename = new File(csvfile);
+		try {
 
-		if(csvfile.contains("국내")) {
-			log.debug("======> 국내기업 크롤링 및 번역 시작.");
-			int duplicated_line_num_count = mapper.getDomesticDuplicatedineNumCount();
-			if(duplicated_line_num_count > 0) {
-				log.debug("======>###### 국내기업 중복되는 라인번호가 존재 합니다. DB를 확인 하세요.");
-			}else {
-				int max_line_num = mapper.getDomesticMaxLineNum();
-				domestic(filename,max_line_num+1);
-			}
+			if(csvfile.contains("국내")) {
+				log.debug("======> 국내기업 크롤링 및 번역 시작.");
+				int duplicated_line_num_count = mapper.getDomesticDuplicatedineNumCount();
+				if(duplicated_line_num_count > 0) {
+					log.debug("======>###### 국내기업 중복되는 라인번호가 존재 합니다. DB를 확인 하세요.");
+				}else {
+					int max_line_num = mapper.getDomesticMaxLineNum();
+					domestic(filename,max_line_num+1);
+				}
 
-		}else if(csvfile.contains("해외")){
-			log.debug("======> 해외기업 크롤링 및 번역 시작.");
-			int duplicated_line_num_count = mapper.getInternationalDuplicatedineNumCount();
-			if(duplicated_line_num_count > 0) {
-				log.debug("======>###### 해외기업 중복되는 라인번호가 존재 합니다. DB를 확인 하세요.");
+			}else if(csvfile.contains("해외")){
+				log.debug("======> 해외기업 크롤링 및 번역 시작.");
+				int duplicated_line_num_count = mapper.getInternationalDuplicatedineNumCount();
+				if(duplicated_line_num_count > 0) {
+					log.debug("======>###### 해외기업 중복되는 라인번호가 존재 합니다. DB를 확인 하세요.");
+				}else {
+					int max_line_num = mapper.getInternationalMaxLineNum();
+					international(filename,max_line_num+1);
+				}
 			}else {
-				int max_line_num = mapper.getInternationalMaxLineNum();
-				international(filename,max_line_num+1);
+				log.debug("======> csv 파일명을 확인하세요.");
 			}
-		}else {
-			log.debug("======> csv 파일명을 확인하세요.");
+		}catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			long afterTime = System.currentTimeMillis(); // 코드 실행 후에 시간 받아오기
+	        long secDiffTime = (afterTime - beforeTime)/1000; //두 시간에 차 계산
+	        log.debug("시간차이 : "+secDiffTime+"(초)");
 		}
 
 
 
 
-        long afterTime = System.currentTimeMillis(); // 코드 실행 후에 시간 받아오기
-        long secDiffTime = (afterTime - beforeTime)/1000; //두 시간에 차 계산
-        log.debug("시간차이 : "+secDiffTime+"(초)");
 
 	}
 
@@ -118,11 +125,17 @@ public class KOCompanyApplication implements CommandLineRunner{
 //	    	if(lineNum >= startLine && lineNum <= 1000) {
 	    	if(lineNum >= startLine ) {
 	    		Crawling cr= jsoupBody(com.getChUrl());
+	    		//chURL길이체크
+	    		if(com.getChUrl().length() >600) {
+	    			com.setChUrl(com.getChUrl().substring(0, 600));
+	    		}
 	        	if(cr!= null) {
 	        		if(StringUtils.isNotEmpty(cr.getDescription())) {
 	        			com.setOrgDesc(cr.getDescription());
+	        			//System.out.println(cr.getDescription());
 	        			TransResult tr = Translator.subStrByteAndTranslate(cr.getDescription(), cutlen);
 	        			if(tr != null) {
+	        				//System.out.println(tr.getTransText());
 		        			com.setTransDesc(tr.getTransText());
 		        		}
 
@@ -305,18 +318,41 @@ public class KOCompanyApplication implements CommandLineRunner{
 				description = emChange(desc2.replaceAll("(\r|\n|\r\n|\n\r)",""));
 			}else if(StringUtils.isNotEmpty(desc3)) {
 				description = emChange(desc3.replaceAll("(\r|\n|\r\n|\n\r)",""));
+
+
 			}
+
+			if(StringUtils.isNotEmpty(description)) {
+				description = EmojiParser.replaceAllEmojis(description, "");
+				keywords = emChange(description.replaceAll("(\r|\n|\r\n|\n\r)",""));
+				byte[] descriptionbyte = description.getBytes();
+				if(descriptionbyte.length>3000) {
+					description = new String(descriptionbyte,0,3000);
+				}
+			}
+
 			//log.debug("Meta Description: " + description);
 			String key =  document.select("meta[name=keywords]").attr("content");
 			if(StringUtils.isNotEmpty(key)) {
 				keywords = emChange(key.replaceAll("(\r|\n|\r\n|\n\r)",""));
+				byte[] keybyte = keywords.getBytes();
+				if(keybyte.length>3000) {
+					keywords = new String(keybyte,0,3000);
+				}
 			}
-			//log.debug("keywords: " + keywords);
+			log.debug("keywords: " + keywords);
 			//System.out.printf("Html: %s%n", html2);
 			bodyText = document.select("body").text();
 			//이모티콘제거
 			bodyText = emChange(bodyText.replaceAll("amp;", " "));
 			//log.debug(bodyText);
+
+			if(bodyText == null || bodyText.trim().length()==0) {
+				//System.out.println("body is null");
+				bodyText = null;
+				description = null;
+				keywords = null;
+			}
 
 
 

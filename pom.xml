@@ -71,6 +71,11 @@
 			<version>2.8.5</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.vdurmont</groupId>
+			<artifactId>emoji-java</artifactId>
+			<version>5.1.0</version>
+		</dependency>
 
 
 
