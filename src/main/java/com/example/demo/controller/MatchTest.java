@@ -13,7 +13,7 @@ public class MatchTest {
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		String readLine = "1041429;유니디자인;http://www.unidesign.co.kr/shop/display/home.php?mode=home";
+		String readLine = "1041429;유니디자인;http://www.ballet.or.kr,http://www.ballet.or.kr";
 		
 		String str[] = readLine.split(";");
 //		System.out.println(str.length);

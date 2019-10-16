@@ -75,7 +75,13 @@ public class KOCompanyApplication implements CommandLineRunner{
 				if(duplicated_line_num_count > 0) {
 					log.debug("======>###### 해외기업 중복되는 라인번호가 존재 합니다. DB를 확인 하세요.");
 				}else {
-					int max_line_num = mapper.getInternationalMaxLineNum();
+					
+					int max_line_num = mapper.getInternationalMaxLineNum200000();
+					/*
+					InetAddress local = InetAddress.getLocalHost();
+					String ip = local.getHostAddress();
+					System.out.println(ip);
+					*/
 					international(filename,max_line_num+1);
 				}
 			}else {
@@ -148,16 +154,18 @@ public class KOCompanyApplication implements CommandLineRunner{
 		        			com.setTransKeywords(tr.getTransText());
 		        		}
 	        		}
-
-			    	if(StringUtils.isNotEmpty(cr.getBodyText())){
-			    		com.setOrgText(cr.getBodyText());
-			    		TransResult tr = Translator.subStrByteAndTranslate(cr.getBodyText(), cutlen);
-			    		if(tr != null) {
-		        			com.setTransText(tr.getTransText());
-		        			com.setOrgLangCd(tr.getLangCd());
-		        			com.setByteLength(tr.getByteLength());
-		        		}
-		    		}
+		        	
+		        	
+				    	if(StringUtils.isNotEmpty(cr.getBodyText())){
+				    		com.setOrgText(cr.getBodyText());
+				    		TransResult tr = Translator.subStrByteAndTranslate(cr.getBodyText(), cutlen);
+				    		if(tr != null) {
+			        			com.setTransText(tr.getTransText());
+			        			com.setOrgLangCd(tr.getLangCd());
+			        			com.setByteLength(tr.getByteLength());
+			        		}
+			    		}
+		        	
 	    		}
 
 	        	com.setLineNum(lineNum);
@@ -294,9 +302,6 @@ public class KOCompanyApplication implements CommandLineRunner{
 	@SuppressWarnings("finally")
 	private static Crawling jsoupBody(String webPage) {
 
-		//String webPage = "http://www.aspic.co.kr";//en
-
-        //webPage = "http://www.hdlift.co.kr";
 		String bodyText = null;
 		String description = null;
 		String keywords = null;
@@ -313,18 +318,16 @@ public class KOCompanyApplication implements CommandLineRunner{
 			String desc2=document.select("meta[property=og:description]").attr("content");
 			String desc3=document.select("meta[name=twitter:description]").attr("content");
 			if(StringUtils.isNotEmpty(desc1)) {
-				description = emChange(desc1.replaceAll("(\r|\n|\r\n|\n\r)",""));
+				description = emChange(desc1);
 			}else if(StringUtils.isNotEmpty(desc2)) {
-				description = emChange(desc2.replaceAll("(\r|\n|\r\n|\n\r)",""));
+				description = emChange(desc2);
 			}else if(StringUtils.isNotEmpty(desc3)) {
-				description = emChange(desc3.replaceAll("(\r|\n|\r\n|\n\r)",""));
-
-
+				description = emChange(desc3);
 			}
 
 			if(StringUtils.isNotEmpty(description)) {
 				description = EmojiParser.replaceAllEmojis(description, "");
-				keywords = emChange(description.replaceAll("(\r|\n|\r\n|\n\r)",""));
+				keywords = emChange(description);
 				byte[] descriptionbyte = description.getBytes();
 				if(descriptionbyte.length>3000) {
 					description = new String(descriptionbyte,0,3000);
@@ -334,30 +337,27 @@ public class KOCompanyApplication implements CommandLineRunner{
 			//log.debug("Meta Description: " + description);
 			String key =  document.select("meta[name=keywords]").attr("content");
 			if(StringUtils.isNotEmpty(key)) {
-				keywords = emChange(key.replaceAll("(\r|\n|\r\n|\n\r)",""));
+				keywords = emChange(key);
 				byte[] keybyte = keywords.getBytes();
 				if(keybyte.length>3000) {
 					keywords = new String(keybyte,0,3000);
 				}
 			}
-			log.debug("keywords: " + keywords);
-			//System.out.printf("Html: %s%n", html2);
+			//log.debug("keywords: " + keywords);
+					
+			
 			bodyText = document.select("body").text();
 			//이모티콘제거
 			bodyText = emChange(bodyText.replaceAll("amp;", " "));
 			//log.debug(bodyText);
 
+			/*
 			if(bodyText == null || bodyText.trim().length()==0) {
-				//System.out.println("body is null");
 				bodyText = null;
 				description = null;
 				keywords = null;
 			}
-
-
-
-			//log.debug("Language:"+detectLanguage(bodyText));
-			//System.out.printf("Body: %s", bodyText);
+			*/
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -376,6 +376,7 @@ public class KOCompanyApplication implements CommandLineRunner{
 	private static String emChange(String str) {
 		Matcher emMatcher = em.matcher(str);
 		str = emMatcher.replaceAll("");
+		str = str.replaceAll("(\r|\n|\r\n|\n\r)","");
 		return str;
 	}
 

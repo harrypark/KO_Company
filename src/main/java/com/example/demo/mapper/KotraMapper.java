@@ -43,6 +43,9 @@ public interface KotraMapper {
 
 	@Select("select count(*) from (select * from ko_International group by line_num HAVING count(line_num)>1) a")
 	int getInternationalDuplicatedineNumCount();
+
+	@Select("select ifnull(max(line_num),200001) from ko_International where line_num>200000")
+	int getInternationalMaxLineNum200000();
 	
 	
 }
